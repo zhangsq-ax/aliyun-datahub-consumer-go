@@ -212,9 +212,6 @@ func (consumer *DataHubConsumer) startConsumeShard(shardId string, opts *Consume
 					break
 				}
 			}
-
-			// todo: delete
-			time.Sleep(1 * time.Second)
 		}
 
 		// 获取下次消费的 cursor
