@@ -70,8 +70,6 @@ func (consumer *DataHubConsumer) createSubscriptionSession() error {
 		return err
 	}
 	consumer.session = session
-	fmt.Println("##################")
-	fmt.Println(session.Offsets["0"].SessionId)
 	return nil
 }
 
@@ -173,7 +171,6 @@ func (consumer *DataHubConsumer) startConsumeShard(shardId string, opts *Consume
 		errChan <- err
 		return
 	}
-	consumedCount := 0
 	for {
 		// 消费指定数量的记录
 		gr, err := consumer.consumeShard(shardId, cursor, opts.LimitPerTime)
@@ -204,7 +201,7 @@ func (consumer *DataHubConsumer) startConsumeShard(shardId string, opts *Consume
 			consumer.consumeCounts[shardId] += 1    // 更新记数
 
 			// 如果记录到达上限则提交 offset
-			if consumedCount%opts.CommitOffsetLimit == 0 {
+			if consumer.consumeCounts[shardId]%opts.CommitOffsetLimit == 0 {
 				err := consumer.commitSubscriptionOffset(shardId)
 				if err != nil {
 					// 如果 offset 提交失败则停止循环
