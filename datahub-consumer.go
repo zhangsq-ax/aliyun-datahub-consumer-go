@@ -195,9 +195,6 @@ func (consumer *DataHubConsumer) startConsumeShard(shardId string, opts *Consume
 
 		// 循环处理消费到的记录
 		for _, record := range gr.Records {
-			r := record.(*datahub.BlobRecord)
-			fmt.Println("---->", r.Cursor)
-
 			recordChan <- record // 推送到 Channel
 
 			consumer.lastRecords[shardId] = &record // 记录最后消费的 record
