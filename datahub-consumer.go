@@ -8,7 +8,7 @@ import (
 	"github.com/aliyun/aliyun-datahub-sdk-go/datahub"
 )
 
-// ConsumerOptions 消费设置
+// ConsumeOptions 消费设置
 type ConsumeOptions struct {
 	LimitPerTime      int                // 单次消费数量
 	CommitOffsetLimit int                // 提交消费 Offset 的数量
@@ -143,8 +143,8 @@ func (consumer *DataHubConsumer) GetRecordSchema() (schema *datahub.RecordSchema
 	return
 }
 
-func (consumer *DataHubConsumer) StartConsume(opts *ConsumeOptions) (chan *datahub.IRecord, chan error) {
-	recordChan := make(chan *datahub.IRecord, 100)
+func (consumer *DataHubConsumer) StartConsume(opts *ConsumeOptions) (chan datahub.IRecord, chan error) {
+	recordChan := make(chan datahub.IRecord, 100)
 	errChan := make(chan error, 100)
 
 	for _, shardId := range consumer.GetActiveShardIds() {
@@ -154,7 +154,7 @@ func (consumer *DataHubConsumer) StartConsume(opts *ConsumeOptions) (chan *datah
 	return recordChan, errChan
 }
 
-func (consumer *DataHubConsumer) startConsumeShard(shardId string, opts *ConsumeOptions, recordChan chan *datahub.IRecord, errChan chan error) {
+func (consumer *DataHubConsumer) startConsumeShard(shardId string, opts *ConsumeOptions, recordChan chan datahub.IRecord, errChan chan error) {
 	var (
 		cursor string
 		err    error
@@ -195,7 +195,10 @@ func (consumer *DataHubConsumer) startConsumeShard(shardId string, opts *Consume
 
 		// 循环处理消费到的记录
 		for _, record := range gr.Records {
-			recordChan <- &record // 推送到 Channel
+			r := record.(*datahub.BlobRecord)
+			fmt.Println("---->", r.Cursor)
+
+			recordChan <- record // 推送到 Channel
 
 			consumer.lastRecords[shardId] = &record // 记录最后消费的 record
 			consumer.consumeCounts[shardId] += 1    // 更新记数
